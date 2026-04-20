@@ -5,7 +5,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# Configuration des 5 destinations de prestige
+# Configuration des destinations
 VILLES = [
     {"nom": "Courbevoie 🏢", "lat": "48.8973", "lon": "2.2522"},
     {"nom": "Cannes 🎬", "lat": "43.5513", "lon": "7.0128"},
@@ -17,83 +17,85 @@ VILLES = [
 @app.route('/')
 def dashboard():
     resultats = []
-    total_latency = 0
-    now = datetime.now().strftime("%d/%m/%Y à %H:%M:%S")
-
+    labels_graphe = []
+    temps_graphe = []
+    ressenti_graphe = []
+    
     for ville in VILLES:
-        url = f"https://api.open-meteo.com/v1/forecast?latitude={ville['lat']}&longitude={ville['lon']}&current_weather=true"
-        start = time.time()
+        # Ajout du paramètre apparent_temperature
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={ville['lat']}&longitude={ville['lon']}&current_weather=true&hourly=apparent_temperature"
         try:
-            response = requests.get(url, timeout=5)
-            latency = round((time.time() - start) * 1000)
-            temp = f"{response.json()['current_weather']['temperature']}°C"
+            response = requests.get(url, timeout=5).json()
+            temp = response['current_weather']['temperature']
+            # On récupère le ressenti actuel
+            ressenti = response['hourly']['apparent_temperature'][0]
             status, color = "OPÉRATIONNEL", "#4ade80"
         except:
-            latency, temp, status, color = "-", "N/A", "ERREUR", "#f87171"
+            temp, ressenti, status, color = 0, 0, "ERREUR", "#f87171"
         
-        resultats.append({**ville, "status": status, "latency": latency, "color": color, "temp": temp})
-        if isinstance(latency, int): total_latency += latency
-
-    avg_latency = round(total_latency / len(VILLES))
+        resultats.append({**ville, "status": status, "temp": temp, "ressenti": ressenti, "color": color})
+        labels_graphe.append(ville['nom'])
+        temps_graphe.append(temp)
+        ressenti_graphe.append(ressenti)
 
     html_template = f"""
     <!DOCTYPE html>
     <html lang="fr">
     <head>
         <meta charset="UTF-8">
-        <title>Lux Monitoring 🇫🇷 - Jean-Gérard</title>
+        <title>Lux Monitoring 🇫🇷</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <style>
-            body {{ font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: #f8fafc; padding: 40px; margin: 0; }}
-            .container {{ max-width: 1100px; margin: auto; }}
+            body {{ font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: #f8fafc; padding: 20px; margin: 0; }}
+            .container {{ max-width: 1000px; margin: auto; }}
             .fr-bar {{ height: 12px; width: 100%; display: flex; position: fixed; top: 0; left: 0; z-index: 1000; border-bottom: 1px solid white; }}
             .blue {{ background-color: #002395; flex: 1; }} .white {{ background-color: #ffffff; flex: 1; }} .red {{ background-color: #ed2939; flex: 1; }}
-            .header {{ border-bottom: 4px solid #002395; padding-bottom: 20px; margin-bottom: 30px; margin-top: 30px; }}
-            h1 {{ color: #ffffff; margin: 0; font-size: 2.2em; text-transform: uppercase; letter-spacing: 2px; }}
-            .btn-group {{ margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }}
-            .btn {{ background-color: #002395; color: white; padding: 10px 18px; border-radius: 4px; text-decoration: none; font-weight: bold; border: 2px solid white; transition: 0.3s; }}
-            .btn:hover {{ background-color: #ed2939; }}
-            .btn-logs {{ background-color: #334155; border: none; font-size: 0.85em; padding: 11px 15px; }}
-            .card {{ background-color: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155; border-top: 8px solid #ed2939; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }}
-            .status-summary {{ display: flex; justify-content: space-between; margin-bottom: 20px; background: #0f172a; padding: 15px; border-radius: 8px; }}
-            table {{ width: 100%; border-collapse: collapse; background: #0f172a; border-radius: 8px; overflow: hidden; }}
-            th {{ text-align: left; color: white; background-color: #002395; font-size: 0.8em; padding: 15px; }}
-            td {{ padding: 15px; border-bottom: 1px solid #334155; }}
-            .footer {{ margin-top: 40px; font-size: 0.85em; color: #94a3b8; text-align: center; }}
+            .btn-group {{ margin: 30px 0; display: flex; gap: 10px; }}
+            .btn {{ background-color: #002395; color: white; padding: 10px 15px; border-radius: 4px; text-decoration: none; font-weight: bold; border: 2px solid white; }}
+            .card {{ background-color: #1e293b; padding: 20px; border-radius: 12px; border-top: 8px solid #ed2939; margin-bottom: 20px; }}
+            table {{ width: 100%; border-collapse: collapse; background: #0f172a; margin-bottom: 20px; }}
+            th, td {{ padding: 12px; text-align: left; border-bottom: 1px solid #334155; }}
+            canvas {{ background: #1e293b; padding: 20px; border-radius: 12px; }}
         </style>
     </head>
     <body>
         <div class="fr-bar"><div class="blue"></div><div class="white"></div><div class="red"></div></div>
         <div class="container">
-            <div class="header">
-                <h1>🇫🇷 Monitoring Luxe & Prestige</h1>
-                <div style="margin-top:10px; color: #94a3b8;">
-                    EPSI | Professeur : <strong>Boris Stocker</strong> | Étudiant : <strong>Jean-Gérard</strong>
-                </div>
+            <h1 style="margin-top:40px;">🇫🇷 Monitoring Luxe & Prestige</h1>
+            
+            <div class="btn-group">
+                <a href="/" class="btn">⚡ ACTUALISER</a>
+                <a href="https://www.pythonanywhere.com/user/jeangerard/files/var/log/jeangerard.pythonanywhere.com.access.log" target="_blank" class="btn" style="background:#334155;">Access Log</a>
+                <a href="https://www.pythonanywhere.com/user/jeangerard/files/var/log/jeangerard.pythonanywhere.com.error.log" target="_blank" class="btn" style="background:#334155;">Error Log</a>
+                <a href="https://www.pythonanywhere.com/user/jeangerard/files/var/log/jeangerard.pythonanywhere.com.server.log" target="_blank" class="btn" style="background:#334155;">Server Log</a>
             </div>
 
-            <div class="btn-group">
-                <a href="/" class="btn">⚡ RÉACTUALISER</a>
-                <a href="https://www.pythonanywhere.com/user/jeangerard/files/var/log/jeangerard.pythonanywhere.com.access.log" target="_blank" class="btn btn-logs">📄 Access Log</a>
-                <a href="https://www.pythonanywhere.com/user/jeangerard/files/var/log/jeangerard.pythonanywhere.com.error.log" target="_blank" class="btn btn-logs">⚠️ Error Log</a>
-                <a href="https://www.pythonanywhere.com/user/jeangerard/files/var/log/jeangerard.pythonanywhere.com.server.log" target="_blank" class="btn btn-logs">🖥️ Server Log</a>
-            </div>
-            
             <div class="card">
-                <div class="status-summary">
-                    <div>Dernière analyse : <strong>{now}</strong></div>
-                    <div style="color: #4ade80;">LATENCE MOYENNE : <strong>{avg_latency} ms</strong></div>
-                </div>
                 <table>
-                    <thead>
-                        <tr><th>Ville</th><th>Statut API</th><th>Météo</th><th>Latence</th><th>GPS</th></tr>
-                    </thead>
+                    <thead><tr><th>Ville</th><th>Statut</th><th>Réel</th><th>Ressenti</th></tr></thead>
                     <tbody>
-                        {" ".join([f'<tr><td style="font-weight:bold;">{r["nom"]}</td><td style="color:{r["color"]}; font-weight:bold;">{r["status"]}</td><td>{r["temp"]}</td><td>{r["latency"]} ms</td><td style="font-size:0.8em; color:#64748b;">{r["lat"]}, {r["lon"]}</td></tr>' for r in resultats])}
+                        {" ".join([f'<tr><td>{r["nom"]}</td><td style="color:{r["color"]}">{r["status"]}</td><td>{r["temp"]}°C</td><td>{r["ressenti"]}°C</td></tr>' for r in resultats])}
                     </tbody>
                 </table>
             </div>
-            <div class="footer"><p>Projet Testing as Code - Séquence 4 - EPSI 2026</p></div>
+
+            <canvas id="luxChart" width="400" height="150"></canvas>
         </div>
+
+        <script>
+            const ctx = document.getElementById('luxChart').getContext('2d');
+            new Chart(ctx, {{
+                type: 'bar',
+                data: {{
+                    labels: {labels_graphe},
+                    datasets: [
+                        {{ label: 'Température Réelle (°C)', data: {temps_graphe}, backgroundColor: '#002395' }},
+                        {{ label: 'Ressenti (°C)', data: {ressenti_graphe}, backgroundColor: '#ed2939' }}
+                    ]
+                }},
+                options: {{ scales: {{ y: {{ beginAtZero: false, grid: {{ color: '#334155' }} }} }} }}
+            }});
+        </script>
     </body>
     </html>
     """
