@@ -7,8 +7,11 @@ app = Flask(__name__)
 
 @app.route('/')
 def dashboard():
-    # 1. Mesure de performance de l'API
-    url = "https://api.open-meteo.com/v1/forecast?latitude=48.85&longitude=2.35&current_weather=true"
+    # 1. Mesure de performance de l'API - Coordonnées de Courbevoie 🇫🇷
+    lat = "48.8973"
+    lon = "2.2522"
+    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
+    
     start = time.time()
     
     try:
@@ -44,7 +47,6 @@ def dashboard():
             .btn {{ background-color: #002395; color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-weight: bold; border: 2px solid #ffffff; cursor: pointer; transition: 0.3s; }}
             .btn:hover {{ background-color: #ed2939; border-color: #ffffff; }}
             .btn-logs {{ background-color: #334155; border: none; font-size: 0.85em; opacity: 0.9; }}
-            .btn-logs:hover {{ opacity: 1; background-color: #475569; }}
             .card {{ background-color: #1e293b; padding: 25px; border-radius: 0 0 15px 15px; border: 1px solid #334155; border-top: 6px solid #ed2939; }}
             .status-line {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px; background: #0f172a; border-radius: 8px; }}
             table {{ width: 100%; border-collapse: collapse; margin-top: 20px; background: #0f172a; border-radius: 8px; overflow: hidden; }}
@@ -91,7 +93,7 @@ def dashboard():
                             <td>API Météo (Open-Meteo)</td>
                             <td class="status-pass">{status}</td>
                             <td>{latency} ms</td>
-                            <td>Paris, FR 🇫🇷</td>
+                            <td>Courbevoie, FR 🇫🇷</td>
                         </tr>
                     </tbody>
                 </table>
@@ -99,7 +101,7 @@ def dashboard():
 
             <div class="footer">
                 <p>Projet Testing as Code - <span class="highlight">EPSI 2026</span></p>
-                <p>Déployé automatiquement pour <strong>Boris Stocker</strong> via GitHub Actions</p>
+                <p>Déployé automatiquement pour <strong>Boris Stocker</strong></p>
             </div>
         </div>
     </body>
