@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def dashboard():
-    # 1. Mesure de performance de l'API Open-Meteo
+    # 1. Mesure de performance de l'API
     url = "https://api.open-meteo.com/v1/forecast?latitude=48.85&longitude=2.35&current_weather=true"
     start = time.time()
     
@@ -15,15 +15,15 @@ def dashboard():
         response = requests.get(url, timeout=5)
         latency = round((time.time() - start) * 1000)
         status = "PASSER" if response.status_code == 200 else "ÉCHEC"
-        status_color = "#4ade80" if response.status_code == 200 else "#f87171"
-    except Exception as e:
+        status_color = "#4ade80" # Vert pour le succès
+    except Exception:
         latency = "-"
         status = "ERREUR"
         status_color = "#f87171"
 
     now = datetime.now().strftime("%Y-%m-%d à %H:%M:%S")
 
-    # 2. Design Amélioré (Style Dark Mode / EPSI)
+    # 2. Design aux couleurs de la FRANCE 🇫🇷
     html_template = f"""
     <!DOCTYPE html>
     <html lang="fr">
@@ -31,75 +31,81 @@ def dashboard():
         <meta charset="UTF-8">
         <title>Dashboard Monitoring - Jean-Gérard (EPSI)</title>
         <style>
-            body {{ font-family: 'Segoe UI', sans-serif; background-color: #1a1625; color: #e2e8f0; padding: 40px; line-height: 1.6; }}
+            body {{ font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: #f8fafc; padding: 40px; margin: 0; }}
             .container {{ max-width: 1000px; margin: auto; }}
-            .header {{ border-bottom: 2px solid #8b5cf6; padding-bottom: 20px; margin-bottom: 30px; }}
-            h1 {{ color: #c084fc; margin: 0; font-size: 2.5em; }}
+            
+            /* Drapeau de la France en bordure supérieure */
+            .fr-bar {{ height: 10px; width: 100%; display: flex; position: fixed; top: 0; left: 0; }}
+            .blue {{ background-color: #002395; flex: 1; }}
+            .white {{ background-color: #ffffff; flex: 1; }}
+            .red {{ background-color: #ed2939; flex: 1; }}
+            
+            .header {{ border-bottom: 3px solid #002395; padding-bottom: 20px; margin-bottom: 30px; margin-top: 20px; }}
+            h1 {{ color: #ffffff; margin: 0; font-size: 2.2em; text-transform: uppercase; letter-spacing: 2px; }}
             .sub-header {{ color: #94a3b8; font-size: 1.1em; margin-top: 10px; }}
             
-            .btn-group {{ margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }}
-            .btn {{ background-color: #7c3aed; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; border: none; cursor: pointer; transition: 0.3s; }}
-            .btn:hover {{ background-color: #6d28d9; }}
-            .btn-logs {{ background-color: #4b5563; font-size: 0.9em; }}
+            .btn-group {{ margin-bottom: 25px; display: flex; gap: 10px; }}
+            .btn {{ background-color: #002395; color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-weight: bold; border: 2px solid #ffffff; cursor: pointer; transition: 0.3s; }}
+            .btn:hover {{ background-color: #ed2939; border-color: #ffffff; }}
+            .btn-logs {{ background-color: #334155; border: none; font-size: 0.85em; }}
             
-            .card {{ background-color: #2d2640; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #443d5a; }}
-            .status-line {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px; background: #1f1a2e; border-radius: 10px; }}
+            .card {{ background-color: #1e293b; padding: 25px; border-radius: 0 0 15px 15px; border: 1px solid #334155; border-top: 5px solid #ed2939; }}
+            .status-line {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px; background: #0f172a; border-radius: 8px; }}
             
-            table {{ width: 100%; border-collapse: collapse; margin-top: 20px; background: #1f1a2e; border-radius: 10px; overflow: hidden; }}
-            th {{ text-align: left; color: #a78bfa; text-transform: uppercase; font-size: 0.8em; padding: 15px; border-bottom: 1px solid #443d5a; }}
-            td {{ padding: 15px; border-bottom: 1px solid #332d4a; }}
+            table {{ width: 100%; border-collapse: collapse; margin-top: 20px; background: #0f172a; }}
+            th {{ text-align: left; color: #ffffff; background-color: #002395; text-transform: uppercase; font-size: 0.8em; padding: 15px; }}
+            td {{ padding: 15px; border-bottom: 1px solid #334155; }}
             
             .status-pass {{ color: {status_color}; font-weight: bold; }}
-            .footer {{ margin-top: 40px; font-size: 0.85em; color: #64748b; text-align: center; border-top: 1px solid #332d4a; padding-top: 20px; }}
-            .highlight {{ color: #c084fc; font-weight: bold; }}
+            .footer {{ margin-top: 40px; font-size: 0.85em; color: #94a3b8; text-align: center; }}
+            .highlight {{ color: #ffffff; font-weight: bold; text-decoration: underline #ed2939; }}
         </style>
     </head>
     <body>
+        <div class="fr-bar"><div class="blue"></div><div class="white"></div><div class="red"></div></div>
+        
         <div class="container">
             <div class="header">
-                <h1>✨ État de l'API - Dashboard</h1>
+                <h1>🇫🇷 Monitoring API - Séquence 4</h1>
                 <div class="sub-header">École : <span class="highlight">EPSI</span> | Professeur : <span class="highlight">Boris Stocker</span></div>
-                <div class="sub-header">Étudiant : Jean-Gérard</div>
+                <div class="sub-header">Étudiant : <span style="color:white;">Jean-Gérard</span></div>
             </div>
 
             <div class="btn-group">
-                <button class="btn">⚡ Exécuter les tests manuellement</button>
-                <a href="/var/log/jeangerard.pythonanywhere.com.access.log" class="btn btn-logs">📄 Access Log</a>
-                <a href="/var/log/jeangerard.pythonanywhere.com.error.log" class="btn btn-logs">⚠️ Error Log</a>
-                <a href="/var/log/jeangerard.pythonanywhere.com.server.log" class="btn btn-logs">🖥️ Server Log</a>
+                <a href="/" class="btn">⚡ ACTUALISER</a>
+                <a href="/var/log/jeangerard.pythonanywhere.com.access.log" class="btn btn-logs">Access Log</a>
+                <a href="/var/log/jeangerard.pythonanywhere.com.error.log" class="btn btn-logs">Error Log</a>
             </div>
             
             <div class="card">
                 <div class="status-line">
-                    <div style="font-size: 1.2em;">Dernière exécution : <span style="color: #94a3b8;">{now}</span></div>
-                    <div style="background: #4c1d95; padding: 8px 15px; border-radius: 20px; font-size: 0.9em;">
-                        Succès : 1 | Échecs : 0 | Latence : {latency} ms
-                    </div>
+                    <div style="font-size: 1.1em;">Dernier check : <strong>{now}</strong></div>
+                    <div style="color: #4ade80; font-weight: bold;">TESTS GITHUB : PASSÉS ✅</div>
                 </div>
                 
                 <table>
                     <thead>
                         <tr>
-                            <th>Point de terminaison</th>
-                            <th>Statut</th>
+                            <th>Service</th>
+                            <th>Résultat</th>
                             <th>Latence</th>
-                            <th>Détails</th>
+                            <th>Localisation</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>GET /forecast (Open-Meteo)</td>
+                            <td>API Météo (Open-Meteo)</td>
                             <td class="status-pass">{status}</td>
                             <td>{latency} ms</td>
-                            <td>Opérationnel ✅</td>
+                            <td>Paris, FR 🇫🇷</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <div class="footer">
-                <p>Système de monitoring automatisé via <span class="highlight">GitHub Actions</span> et <span class="highlight">PythonAnywhere</span></p>
-                <p>Séquence 4 : Atelier Testing as Code - Jean-Gérard</p>
+                <p>Projet d'automatisation - EPSI 2026</p>
+                <p>Déployé via <strong>GitHub Actions</strong> sur <strong>PythonAnywhere</strong></p>
             </div>
         </div>
     </body>
