@@ -15,7 +15,7 @@ def dashboard():
         response = requests.get(url, timeout=5)
         latency = round((time.time() - start) * 1000)
         status = "PASSER" if response.status_code == 200 else "ÉCHEC"
-        status_color = "#4ade80" # Vert pour le succès
+        status_color = "#4ade80" 
     except Exception:
         latency = "-"
         status = "ERREUR"
@@ -23,7 +23,7 @@ def dashboard():
 
     now = datetime.now().strftime("%Y-%m-%d à %H:%M:%S")
 
-    # 2. Design aux couleurs de la FRANCE 🇫🇷
+    # 2. Design aux couleurs de la FRANCE 🇫🇷 avec liens de Logs corrigés
     html_template = f"""
     <!DOCTYPE html>
     <html lang="fr">
@@ -33,29 +33,22 @@ def dashboard():
         <style>
             body {{ font-family: 'Segoe UI', sans-serif; background-color: #0f172a; color: #f8fafc; padding: 40px; margin: 0; }}
             .container {{ max-width: 1000px; margin: auto; }}
-            
-            /* Drapeau de la France en bordure supérieure */
-            .fr-bar {{ height: 10px; width: 100%; display: flex; position: fixed; top: 0; left: 0; }}
+            .fr-bar {{ height: 10px; width: 100%; display: flex; position: fixed; top: 0; left: 0; z-index: 1000; }}
             .blue {{ background-color: #002395; flex: 1; }}
             .white {{ background-color: #ffffff; flex: 1; }}
             .red {{ background-color: #ed2939; flex: 1; }}
-            
             .header {{ border-bottom: 3px solid #002395; padding-bottom: 20px; margin-bottom: 30px; margin-top: 20px; }}
             h1 {{ color: #ffffff; margin: 0; font-size: 2.2em; text-transform: uppercase; letter-spacing: 2px; }}
             .sub-header {{ color: #94a3b8; font-size: 1.1em; margin-top: 10px; }}
-            
-            .btn-group {{ margin-bottom: 25px; display: flex; gap: 10px; }}
+            .btn-group {{ margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap; }}
             .btn {{ background-color: #002395; color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-weight: bold; border: 2px solid #ffffff; cursor: pointer; transition: 0.3s; }}
-            .btn:hover {{ background-color: #ed2939; border-color: #ffffff; }}
+            .btn:hover {{ background-color: #ed2939; }}
             .btn-logs {{ background-color: #334155; border: none; font-size: 0.85em; }}
-            
             .card {{ background-color: #1e293b; padding: 25px; border-radius: 0 0 15px 15px; border: 1px solid #334155; border-top: 5px solid #ed2939; }}
             .status-line {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px; background: #0f172a; border-radius: 8px; }}
-            
             table {{ width: 100%; border-collapse: collapse; margin-top: 20px; background: #0f172a; }}
             th {{ text-align: left; color: #ffffff; background-color: #002395; text-transform: uppercase; font-size: 0.8em; padding: 15px; }}
             td {{ padding: 15px; border-bottom: 1px solid #334155; }}
-            
             .status-pass {{ color: {status_color}; font-weight: bold; }}
             .footer {{ margin-top: 40px; font-size: 0.85em; color: #94a3b8; text-align: center; }}
             .highlight {{ color: #ffffff; font-weight: bold; text-decoration: underline #ed2939; }}
@@ -63,7 +56,6 @@ def dashboard():
     </head>
     <body>
         <div class="fr-bar"><div class="blue"></div><div class="white"></div><div class="red"></div></div>
-        
         <div class="container">
             <div class="header">
                 <h1>🇫🇷 Monitoring API - Séquence 4</h1>
@@ -73,8 +65,9 @@ def dashboard():
 
             <div class="btn-group">
                 <a href="/" class="btn">⚡ ACTUALISER</a>
-                <a href="/var/log/jeangerard.pythonanywhere.com.access.log" class="btn btn-logs">Access Log</a>
-                <a href="/var/log/jeangerard.pythonanywhere.com.error.log" class="btn btn-logs">Error Log</a>
+                <a href="https://www.pythonanywhere.com/user/jeangerard/files/var/log/jeangerard.pythonanywhere.com.access.log?edit" target="_blank" class="btn btn-logs">📄 Access Log</a>
+                <a href="https://www.pythonanywhere.com/user/jeangerard/files/var/log/jeangerard.pythonanywhere.com.error.log?edit" target="_blank" class="btn btn-logs">⚠️ Error Log</a>
+                <a href="https://www.pythonanywhere.com/user/jeangerard/files/var/log/jeangerard.pythonanywhere.com.server.log?edit" target="_blank" class="btn btn-logs">🖥️ Server Log</a>
             </div>
             
             <div class="card">
@@ -105,7 +98,7 @@ def dashboard():
 
             <div class="footer">
                 <p>Projet d'automatisation - EPSI 2026</p>
-                <p>Déployé via <strong>GitHub Actions</strong> sur <strong>PythonAnywhere</strong></p>
+                <p>Déployé via <strong>GitHub Actions</strong> pour <strong>Boris Stocker</strong></p>
             </div>
         </div>
     </body>
